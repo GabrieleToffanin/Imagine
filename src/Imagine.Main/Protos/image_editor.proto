@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+option csharp_namespace = "Imagine.Main.Protos";
+
+package image_editor;
+
+import "google/protobuf/empty.proto";
+
+service ImageEditor {
+  rpc LoadImage (LoadImageRequest) returns (LoadImageResponse);
+  rpc SaveImage (SaveImageRequest) returns (SaveImageResponse);
+  rpc ApplyFilter (ApplyFilterRequest) returns (ApplyFilterResponse);
+  rpc AdjustBrightness (AdjustBrightnessRequest) returns (AdjustBrightnessResponse);
+  rpc AdjustContrast (AdjustContrastRequest) returns (AdjustContrastResponse);
+  rpc ResizeImage (ResizeImageRequest) returns (ResizeImageResponse);
+  rpc CropImage (CropImageRequest) returns (CropImageResponse);
+  rpc RotateImage (RotateImageRequest) returns (RotateImageResponse);
+  rpc GetImageInfo (GetImageInfoRequest) returns (GetImageInfoResponse);
+  rpc GetSupportedFormats (google.protobuf.Empty) returns (SupportedFormatsResponse);
+}
+
+message LoadImageRequest {
+  string file_path = 1;
+}
+
+message LoadImageResponse {
+  string image_id = 1;
+  int32 width = 2;
+  int32 height = 3;
+  string format = 4;
+  bool success = 5;
+  string error_message = 6;
+}
+
+message SaveImageRequest {
+  string image_id = 1;
+  string file_path = 2;
+  string format = 3;
+  int32 quality = 4;
+}
+
+message SaveImageResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message ApplyFilterRequest {
+  string image_id = 1;
+  FilterType filter_type = 2;
+  float intensity = 3;
+}
+
+message ApplyFilterResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message AdjustBrightnessRequest {
+  string image_id = 1;
+  float brightness = 2;
+}
+
+message AdjustBrightnessResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message AdjustContrastRequest {
+  string image_id = 1;
+  float contrast = 2;
+}
+
+message AdjustContrastResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message ResizeImageRequest {
+  string image_id = 1;
+  int32 width = 2;
+  int32 height = 3;
+  bool maintain_aspect_ratio = 4;
+}
+
+message ResizeImageResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message CropImageRequest {
+  string image_id = 1;
+  int32 x = 2;
+  int32 y = 3;
+  int32 width = 4;
+  int32 height = 5;
+}
+
+message CropImageResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message RotateImageRequest {
+  string image_id = 1;
+  float angle = 2;
+}
+
+message RotateImageResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+message GetImageInfoRequest {
+  string image_id = 1;
+}
+
+message GetImageInfoResponse {
+  int32 width = 1;
+  int32 height = 2;
+  string format = 3;
+  int64 file_size = 4;
+  string color_space = 5;
+  int32 bit_depth = 6;
+  bool success = 7;
+  string error_message = 8;
+}
+
+message SupportedFormatsResponse {
+  repeated string formats = 1;
+}
+
+enum FilterType {
+  NONE = 0;
+  BLUR = 1;
+  SHARPEN = 2;
+  GRAYSCALE = 3;
+  SEPIA = 4;
+  VINTAGE = 5;
+  NOISE_REDUCTION = 6;
+  EDGE_DETECTION = 7;
+}

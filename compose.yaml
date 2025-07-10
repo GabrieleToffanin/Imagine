@@ -1,0 +1,7 @@
+﻿services:
+  imagine.main:
+    image: imagine.main
+    build:
+      context: .
+      dockerfile: src/Imagine.Main/Dockerfile
+
