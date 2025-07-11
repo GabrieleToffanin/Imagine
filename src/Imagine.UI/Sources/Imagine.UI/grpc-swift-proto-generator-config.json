@@ -1,0 +1,15 @@
+{
+  "invocations": [
+    {
+      "protoFiles": [
+        "Protos/ImageProcessing.proto"
+      ],
+      "visibility": "public"
+    }
+  ],
+  "generate": {
+    "clients": true,
+    "servers": false,
+    "messages": true
+  }
+}

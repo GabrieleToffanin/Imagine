@@ -1,5 +1,80 @@
+# .NET Build artifacts
 bin/
 obj/
 /packages/
+*.user
+*.suo
+*.cache
+*.docstates
+_ReSharper*/
+*.swp
+*.swo
+*~
+*.tmp
+*.log
+
+# Visual Studio / JetBrider
+.vs/
+.vscode/
+.idea/
+*.userprefs
 riderModule.iml
 /_ReSharper.Caches/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+**/Properties/launchSettings.json
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Xcode
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+*.xcuserstate
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Generated gRPC files (can be regenerated)
+**/Generated/
+**/*_pb2.py
+**/*_pb2_grpc.py
+**/*.pb.swift
+**/*.grpc.swift
+
+# Temporary files
+*.swp
+*.swo
+*~
+*.tmp
+*.bak
+*.orig
+
+# IDE specific
+*.sublime-project
+*.sublime-workspace

@@ -6,20 +6,25 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D41DB9512E21284F00E6D997 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = D41DB94E2E21284F00E6D997 /* Package.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
-		D43753892E202B1200DFE04B /* Imagine.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Imagine.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D418343F2E21250A00B14D2D /* Imagine.UI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Imagine.UI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D41DB94E2E21284F00E6D997 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D437538B2E202B1200DFE04B /* Imagine.UI */ = {
+		D41DC6E72E212B6C00E6D997 /* Sources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Imagine.UI;
+			path = Sources;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		D43753862E202B1200DFE04B /* Frameworks */ = {
+		D418343C2E21250A00B14D2D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -29,18 +34,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D43753802E202B1200DFE04B = {
+		D41834362E21250A00B14D2D = {
 			isa = PBXGroup;
 			children = (
-				D437538B2E202B1200DFE04B /* Imagine.UI */,
-				D437538A2E202B1200DFE04B /* Products */,
+				D41DC6E72E212B6C00E6D997 /* Sources */,
+				D41834402E21250A00B14D2D /* Products */,
+				D41DB94E2E21284F00E6D997 /* Package.swift */,
 			);
 			sourceTree = "<group>";
 		};
-		D437538A2E202B1200DFE04B /* Products */ = {
+		D41834402E21250A00B14D2D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D43753892E202B1200DFE04B /* Imagine.app */,
+				D418343F2E21250A00B14D2D /* Imagine.UI.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,64 +54,64 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D43753882E202B1200DFE04B /* Imagine */ = {
+		D418343E2E21250A00B14D2D /* Imagine.UI */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D43753952E202B1200DFE04B /* Build configuration list for PBXNativeTarget "Imagine" */;
+			buildConfigurationList = D418344B2E21250B00B14D2D /* Build configuration list for PBXNativeTarget "Imagine.UI" */;
 			buildPhases = (
-				D43753852E202B1200DFE04B /* Sources */,
-				D43753862E202B1200DFE04B /* Frameworks */,
-				D43753872E202B1200DFE04B /* Resources */,
+				D418343B2E21250A00B14D2D /* Sources */,
+				D418343C2E21250A00B14D2D /* Frameworks */,
+				D418343D2E21250A00B14D2D /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				D437538B2E202B1200DFE04B /* Imagine.UI */,
+				D41DC6E72E212B6C00E6D997 /* Sources */,
 			);
-			name = Imagine;
+			name = Imagine.UI;
 			packageProductDependencies = (
 			);
 			productName = Imagine.UI;
-			productReference = D43753892E202B1200DFE04B /* Imagine.app */;
+			productReference = D418343F2E21250A00B14D2D /* Imagine.UI.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		D43753812E202B1200DFE04B /* Project object */ = {
+		D41834372E21250A00B14D2D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
-					D43753882E202B1200DFE04B = {
+					D418343E2E21250A00B14D2D = {
 						CreatedOnToolsVersion = 16.4;
 					};
 				};
 			};
-			buildConfigurationList = D43753842E202B1200DFE04B /* Build configuration list for PBXProject "Imagine" */;
+			buildConfigurationList = D418343A2E21250A00B14D2D /* Build configuration list for PBXProject "Imagine.UI" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = D43753802E202B1200DFE04B;
+			mainGroup = D41834362E21250A00B14D2D;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = D437538A2E202B1200DFE04B /* Products */;
+			productRefGroup = D41834402E21250A00B14D2D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D43753882E202B1200DFE04B /* Imagine */,
+				D418343E2E21250A00B14D2D /* Imagine.UI */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		D43753872E202B1200DFE04B /* Resources */ = {
+		D418343D2E21250A00B14D2D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -115,17 +121,18 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		D43753852E202B1200DFE04B /* Sources */ = {
+		D418343B2E21250A00B14D2D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D41DB9512E21284F00E6D997 /* Package.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		D43753932E202B1200DFE04B /* Debug */ = {
+		D41834492E21250B00B14D2D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -189,7 +196,7 @@
 			};
 			name = Debug;
 		};
-		D43753942E202B1200DFE04B /* Release */ = {
+		D418344A2E21250B00B14D2D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -245,12 +252,13 @@
 			};
 			name = Release;
 		};
-		D43753962E202B1200DFE04B /* Debug */ = {
+		D418344C2E21250B00B14D2D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Imagine.UI/Imagine_UI.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -258,13 +266,11 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.gabrieletoffanin.Imagine-UI";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -274,12 +280,13 @@
 			};
 			name = Debug;
 		};
-		D43753972E202B1200DFE04B /* Release */ = {
+		D418344D2E21250B00B14D2D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Imagine.UI/Imagine_UI.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -287,13 +294,11 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.photography";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.gabrieletoffanin.Imagine-UI";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -306,25 +311,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D43753842E202B1200DFE04B /* Build configuration list for PBXProject "Imagine" */ = {
+		D418343A2E21250A00B14D2D /* Build configuration list for PBXProject "Imagine.UI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D43753932E202B1200DFE04B /* Debug */,
-				D43753942E202B1200DFE04B /* Release */,
+				D41834492E21250B00B14D2D /* Debug */,
+				D418344A2E21250B00B14D2D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D43753952E202B1200DFE04B /* Build configuration list for PBXNativeTarget "Imagine" */ = {
+		D418344B2E21250B00B14D2D /* Build configuration list for PBXNativeTarget "Imagine.UI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D43753962E202B1200DFE04B /* Debug */,
-				D43753972E202B1200DFE04B /* Release */,
+				D418344C2E21250B00B14D2D /* Debug */,
+				D418344D2E21250B00B14D2D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = D43753812E202B1200DFE04B /* Project object */;
+	rootObject = D41834372E21250A00B14D2D /* Project object */;
 }
