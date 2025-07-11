@@ -16,7 +16,7 @@ actor ImageUploadService {
         return ImageUploadService()
     }
     
-    func uploadImage(imageData: Data, imageName: String, exposure: Float = 0.0) async throws -> UploadImageResponse {
+    func uploadImage(imageData: Data, imageName: String, exposure: Float = 0.0, brightness: Float = 0.0, contrast: Float = 0.0, saturation: Float = 0.0, hue: Float = 0.0, gamma: Float = 1.0, blur: Float = 0.0, sharpen: Float = 0.0) async throws -> UploadImageResponse {
         return try await withGRPCClient(
             transport: .http2NIOPosix(
                 target: .ipv4(host: "127.0.0.1", port: 5062),
@@ -46,6 +46,13 @@ actor ImageUploadService {
                         chunk.imageData = chunkData
                         chunk.chunkIndex = chunkIndex
                         chunk.exposure = exposure
+                        chunk.brightness = brightness
+                        chunk.contrast = contrast
+                        chunk.saturation = saturation
+                        chunk.hue = hue
+                        chunk.gamma = gamma
+                        chunk.blur = blur
+                        chunk.sharpen = sharpen
                         
                         try await writer.write(chunk)
                         

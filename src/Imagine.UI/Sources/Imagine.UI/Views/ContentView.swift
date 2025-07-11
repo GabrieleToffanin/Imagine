@@ -8,6 +8,41 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+struct ParameterSlider: View {
+    let title: String
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+    let step: Double
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.headline)
+                .foregroundColor(.primary)
+            
+            VStack(spacing: 4) {
+                HStack {
+                    Text(String(format: "%.1f", range.lowerBound))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text(String(format: "%.1f", range.upperBound))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Slider(value: $value, in: range, step: step)
+                    .accentColor(.blue)
+                
+                Text(String(format: step < 1 ? "%.1f" : "%.0f", value))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+}
+
 @available(macOS 15.0, *)
 struct ContentView: View {
     @StateObject private var viewModel = ImageProcessingViewModel()
@@ -76,36 +111,134 @@ struct ContentView: View {
                         
                         Divider()
                         
-                        // Exposure controls
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Exposure")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            VStack(spacing: 8) {
-                                HStack {
-                                    Text("-2.0")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Spacer()
-                                    Text("+2.0")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                        // Image editing controls
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 16) {
+                                // Exposure
+                                ParameterSlider(
+                                    title: "Exposure",
+                                    value: Binding(
+                                        get: { Double(viewModel.exposure) },
+                                        set: { newValue in
+                                            viewModel.exposure = Float(newValue)
+                                            viewModel.updateParameter()
+                                        }
+                                    ),
+                                    range: -2.0...2.0,
+                                    step: 0.1
+                                )
+                                
+                                // Brightness
+                                ParameterSlider(
+                                    title: "Brightness",
+                                    value: Binding(
+                                        get: { Double(viewModel.brightness) },
+                                        set: { newValue in
+                                            viewModel.brightness = Float(newValue)
+                                            viewModel.updateParameter()
+                                        }
+                                    ),
+                                    range: -1.0...1.0,
+                                    step: 0.1
+                                )
+                                
+                                // Contrast
+                                ParameterSlider(
+                                    title: "Contrast",
+                                    value: Binding(
+                                        get: { Double(viewModel.contrast) },
+                                        set: { newValue in
+                                            viewModel.contrast = Float(newValue)
+                                            viewModel.updateParameter()
+                                        }
+                                    ),
+                                    range: -1.0...1.0,
+                                    step: 0.1
+                                )
+                                
+                                // Saturation
+                                ParameterSlider(
+                                    title: "Saturation",
+                                    value: Binding(
+                                        get: { Double(viewModel.saturation) },
+                                        set: { newValue in
+                                            viewModel.saturation = Float(newValue)
+                                            viewModel.updateParameter()
+                                        }
+                                    ),
+                                    range: -1.0...1.0,
+                                    step: 0.1
+                                )
+                                
+                                // Hue
+                                ParameterSlider(
+                                    title: "Hue",
+                                    value: Binding(
+                                        get: { Double(viewModel.hue) },
+                                        set: { newValue in
+                                            viewModel.hue = Float(newValue)
+                                            viewModel.updateParameter()
+                                        }
+                                    ),
+                                    range: -180.0...180.0,
+                                    step: 1.0
+                                )
+                                
+                                // Gamma
+                                ParameterSlider(
+                                    title: "Gamma",
+                                    value: Binding(
+                                        get: { Double(viewModel.gamma) },
+                                        set: { newValue in
+                                            viewModel.gamma = Float(newValue)
+                                            viewModel.updateParameter()
+                                        }
+                                    ),
+                                    range: 0.1...3.0,
+                                    step: 0.1
+                                )
+                                
+                                // Blur
+                                ParameterSlider(
+                                    title: "Blur",
+                                    value: Binding(
+                                        get: { Double(viewModel.blur) },
+                                        set: { newValue in
+                                            viewModel.blur = Float(newValue)
+                                            viewModel.updateParameter()
+                                        }
+                                    ),
+                                    range: 0.0...10.0,
+                                    step: 0.1
+                                )
+                                
+                                // Sharpen
+                                ParameterSlider(
+                                    title: "Sharpen",
+                                    value: Binding(
+                                        get: { Double(viewModel.sharpen) },
+                                        set: { newValue in
+                                            viewModel.sharpen = Float(newValue)
+                                            viewModel.updateParameter()
+                                        }
+                                    ),
+                                    range: 0.0...10.0,
+                                    step: 0.1
+                                )
+                                
+                                // Reset button
+                                Button("Reset All") {
+                                    viewModel.resetAllParameters()
+                                    viewModel.updateParameter()
                                 }
-                                
-                                Slider(value: Binding(
-                                    get: { Double(viewModel.exposure) },
-                                    set: { newValue in
-                                        viewModel.updateExposure(Float(newValue))
-                                    }
-                                ), in: -2.0...2.0, step: 0.1)
-                                .accentColor(.blue)
-                                
-                                Text(String(format: "%.1f", viewModel.exposure))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .frame(maxWidth: .infinity)
+                                .buttonStyle(.borderless)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                                .background(Color.red.opacity(0.1))
+                                .foregroundColor(.red)
+                                .cornerRadius(6)
                             }
+                            .padding(.vertical, 8)
                         }
                         
                         Spacer()

@@ -18,10 +18,17 @@ class ImageProcessingViewModel: ObservableObject {
     @Published var uploadStatus = ""
     @Published var isUploading = false
     @Published var exposure: Float = 0.0
+    @Published var brightness: Float = 0.0
+    @Published var contrast: Float = 0.0
+    @Published var saturation: Float = 0.0
+    @Published var hue: Float = 0.0
+    @Published var gamma: Float = 1.0
+    @Published var blur: Float = 0.0
+    @Published var sharpen: Float = 0.0
     @Published var isDownloading = false
     @Published var isProcessingLive = false
     
-    private var exposureDebounceTimer: Timer?
+    private var processingDebounceTimer: Timer?
     private let imageUploadService = ImageUploadService()
     
     func selectImage() {
@@ -37,8 +44,8 @@ class ImageProcessingViewModel: ObservableObject {
                 selectedImage = image
                 processedImage = nil
                 uploadStatus = ""
-                exposureDebounceTimer?.invalidate()
-                exposure = 0.0
+                processingDebounceTimer?.invalidate()
+                resetAllParameters()
             }
         case .failure(let error):
             uploadStatus = "Error selecting image: \(error.localizedDescription)"
@@ -46,27 +53,37 @@ class ImageProcessingViewModel: ObservableObject {
     }
     
     func processImage() {
-        processImageWithExposure(showProgress: true)
+        processImageWithParameters(showProgress: true)
     }
     
-    func updateExposure(_ newValue: Float) {
-        exposure = newValue
+    func resetAllParameters() {
+        exposure = 0.0
+        brightness = 0.0
+        contrast = 0.0
+        saturation = 0.0
+        hue = 0.0
+        gamma = 1.0
+        blur = 0.0
+        sharpen = 0.0
+    }
+    
+    func updateParameter() {
         debouncedProcessImage()
     }
     
     private func debouncedProcessImage() {
         guard selectedImage != nil else { return }
         
-        exposureDebounceTimer?.invalidate()
+        processingDebounceTimer?.invalidate()
         
-        exposureDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { _ in
+        processingDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { _ in
             Task { @MainActor in
-                self.processImageWithExposure(showProgress: false)
+                self.processImageWithParameters(showProgress: false)
             }
         }
     }
     
-    private func processImageWithExposure(showProgress: Bool = false) {
+    private func processImageWithParameters(showProgress: Bool = false) {
         guard let image = selectedImage,
               let imageData = image.tiffRepresentation,
               let bitmap = NSBitmapImageRep(data: imageData),
@@ -90,7 +107,14 @@ class ImageProcessingViewModel: ObservableObject {
                 let response = try await service.uploadImage(
                     imageData: pngData,
                     imageName: "processed_image.png",
-                    exposure: exposure
+                    exposure: exposure,
+                    brightness: brightness,
+                    contrast: contrast,
+                    saturation: saturation,
+                    hue: hue,
+                    gamma: gamma,
+                    blur: blur,
+                    sharpen: sharpen
                 )
                 
                 await MainActor.run {
