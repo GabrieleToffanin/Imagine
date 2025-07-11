@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UniformTypeIdentifiers
+import PhotosUI
 
 struct ParameterSlider: View {
     let title: String
@@ -15,31 +16,22 @@ struct ParameterSlider: View {
     let step: Double
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            VStack(spacing: 4) {
-                HStack {
-                    Text(String(format: "%.1f", range.lowerBound))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text(String(format: "%.1f", range.upperBound))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Slider(value: $value, in: range, step: step)
-                    .accentColor(.blue)
-                
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(title)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.primary)
+                Spacer()
                 Text(String(format: step < 1 ? "%.1f" : "%.0f", value))
-                    .font(.caption)
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity)
+                    .monospacedDigit()
             }
+            
+            Slider(value: $value, in: range, step: step)
+                .tint(.accentColor)
         }
+        .padding(.vertical, 4)
     }
 }
 
@@ -53,180 +45,190 @@ struct ContentView: View {
                 // Left sidebar with controls
                 VStack(spacing: 0) {
                     // Header
-                    HStack {
-                        Text("Imagine")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.primary)
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color(NSColor.controlBackgroundColor))
-                    
-                    // Controls panel
-                    VStack(spacing: 20) {
-                        // File operations
-                        VStack(spacing: 12) {
-                            Button(action: {
-                                viewModel.selectImage()
-                            }) {
-                                HStack {
-                                    Image(systemName: "folder")
-                                        .font(.system(size: 14))
-                                    Text("Import")
-                                        .font(.system(size: 14))
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(6)
-                            }
-                            .buttonStyle(.borderless)
-                            
-                            Button(action: {
-                                viewModel.downloadImage()
-                            }) {
-                                HStack {
-                                    if viewModel.isDownloading {
-                                        ProgressView()
-                                            .scaleEffect(0.6)
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    } else {
-                                        Image(systemName: "square.and.arrow.down")
-                                            .font(.system(size: 14))
-                                        Text("Download")
-                                            .font(.system(size: 14))
-                                    }
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
-                                .background(viewModel.processedImage != nil ? Color.orange : Color.gray)
-                                .foregroundColor(.white)
-                                .cornerRadius(6)
-                            }
-                            .buttonStyle(.borderless)
-                            .disabled(viewModel.processedImage == nil || viewModel.isDownloading)
+                    VStack(spacing: 0) {
+                        HStack {
+                            Text("Imagine")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                            Spacer()
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
+                        .background(.regularMaterial)
                         
                         Divider()
-                        
-                        // Image editing controls
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: 16) {
-                                // Exposure
-                                ParameterSlider(
-                                    title: "Exposure",
-                                    value: Binding(
-                                        get: { Double(viewModel.exposure) },
-                                        set: { newValue in
-                                            viewModel.exposure = Float(newValue)
-                                            viewModel.updateParameter()
-                                        }
-                                    ),
-                                    range: -2.0...2.0,
-                                    step: 0.1
-                                )
+                    }
+                    
+                    // Controls panel
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            // File operations
+                            VStack(spacing: 8) {
+                                Button(action: {
+                                    viewModel.selectImage()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "folder")
+                                        Text("Import File")
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                                    .background(.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                                }
+                                .buttonStyle(.borderless)
                                 
-                                // Brightness
-                                ParameterSlider(
-                                    title: "Brightness",
-                                    value: Binding(
-                                        get: { Double(viewModel.brightness) },
-                                        set: { newValue in
-                                            viewModel.brightness = Float(newValue)
-                                            viewModel.updateParameter()
-                                        }
-                                    ),
-                                    range: -1.0...1.0,
-                                    step: 0.1
-                                )
+                                PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
+                                    HStack {
+                                        Image(systemName: "photo.on.rectangle")
+                                        Text("Photos")
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                                    .background(.green)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                                }
+                                .buttonStyle(.borderless)
                                 
-                                // Contrast
-                                ParameterSlider(
-                                    title: "Contrast",
-                                    value: Binding(
-                                        get: { Double(viewModel.contrast) },
-                                        set: { newValue in
-                                            viewModel.contrast = Float(newValue)
-                                            viewModel.updateParameter()
+                                Button(action: {
+                                    viewModel.downloadImage()
+                                }) {
+                                    HStack {
+                                        if viewModel.isDownloading {
+                                            ProgressView()
+                                                .scaleEffect(0.8)
+                                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        } else {
+                                            Image(systemName: "square.and.arrow.down")
+                                            Text("Export")
                                         }
-                                    ),
-                                    range: -1.0...1.0,
-                                    step: 0.1
-                                )
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                                    .background(viewModel.processedImage != nil ? .orange : .gray)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                                }
+                                .buttonStyle(.borderless)
+                                .disabled(viewModel.processedImage == nil || viewModel.isDownloading)
+                            }
+                            
+                            // Image editing controls
+                            VStack(spacing: 12) {
+                                Text("Adjustments")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .foregroundColor(.secondary)
                                 
-                                // Saturation
-                                ParameterSlider(
-                                    title: "Saturation",
-                                    value: Binding(
-                                        get: { Double(viewModel.saturation) },
-                                        set: { newValue in
-                                            viewModel.saturation = Float(newValue)
-                                            viewModel.updateParameter()
-                                        }
-                                    ),
-                                    range: -1.0...1.0,
-                                    step: 0.1
-                                )
+                                VStack(spacing: 16) {
+                                    ParameterSlider(
+                                        title: "Exposure",
+                                        value: Binding(
+                                            get: { Double(viewModel.exposure) },
+                                            set: { newValue in
+                                                viewModel.exposure = Float(newValue)
+                                                viewModel.updateParameter()
+                                            }
+                                        ),
+                                        range: -2.0...2.0,
+                                        step: 0.1
+                                    )
+                                    
+                                    ParameterSlider(
+                                        title: "Brightness",
+                                        value: Binding(
+                                            get: { Double(viewModel.brightness) },
+                                            set: { newValue in
+                                                viewModel.brightness = Float(newValue)
+                                                viewModel.updateParameter()
+                                            }
+                                        ),
+                                        range: -1.0...1.0,
+                                        step: 0.1
+                                    )
+                                    
+                                    ParameterSlider(
+                                        title: "Contrast",
+                                        value: Binding(
+                                            get: { Double(viewModel.contrast) },
+                                            set: { newValue in
+                                                viewModel.contrast = Float(newValue)
+                                                viewModel.updateParameter()
+                                            }
+                                        ),
+                                        range: -1.0...1.0,
+                                        step: 0.1
+                                    )
+                                    
+                                    ParameterSlider(
+                                        title: "Saturation",
+                                        value: Binding(
+                                            get: { Double(viewModel.saturation) },
+                                            set: { newValue in
+                                                viewModel.saturation = Float(newValue)
+                                                viewModel.updateParameter()
+                                            }
+                                        ),
+                                        range: -1.0...1.0,
+                                        step: 0.1
+                                    )
+                                    
+                                    ParameterSlider(
+                                        title: "Hue",
+                                        value: Binding(
+                                            get: { Double(viewModel.hue) },
+                                            set: { newValue in
+                                                viewModel.hue = Float(newValue)
+                                                viewModel.updateParameter()
+                                            }
+                                        ),
+                                        range: -180.0...180.0,
+                                        step: 1.0
+                                    )
+                                    
+                                    ParameterSlider(
+                                        title: "Gamma",
+                                        value: Binding(
+                                            get: { Double(viewModel.gamma) },
+                                            set: { newValue in
+                                                viewModel.gamma = Float(newValue)
+                                                viewModel.updateParameter()
+                                            }
+                                        ),
+                                        range: 0.1...3.0,
+                                        step: 0.1
+                                    )
+                                    
+                                    ParameterSlider(
+                                        title: "Blur",
+                                        value: Binding(
+                                            get: { Double(viewModel.blur) },
+                                            set: { newValue in
+                                                viewModel.blur = Float(newValue)
+                                                viewModel.updateParameter()
+                                            }
+                                        ),
+                                        range: 0.0...10.0,
+                                        step: 0.1
+                                    )
+                                    
+                                    ParameterSlider(
+                                        title: "Sharpen",
+                                        value: Binding(
+                                            get: { Double(viewModel.sharpen) },
+                                            set: { newValue in
+                                                viewModel.sharpen = Float(newValue)
+                                                viewModel.updateParameter()
+                                            }
+                                        ),
+                                        range: 0.0...10.0,
+                                        step: 0.1
+                                    )
+                                }
                                 
-                                // Hue
-                                ParameterSlider(
-                                    title: "Hue",
-                                    value: Binding(
-                                        get: { Double(viewModel.hue) },
-                                        set: { newValue in
-                                            viewModel.hue = Float(newValue)
-                                            viewModel.updateParameter()
-                                        }
-                                    ),
-                                    range: -180.0...180.0,
-                                    step: 1.0
-                                )
-                                
-                                // Gamma
-                                ParameterSlider(
-                                    title: "Gamma",
-                                    value: Binding(
-                                        get: { Double(viewModel.gamma) },
-                                        set: { newValue in
-                                            viewModel.gamma = Float(newValue)
-                                            viewModel.updateParameter()
-                                        }
-                                    ),
-                                    range: 0.1...3.0,
-                                    step: 0.1
-                                )
-                                
-                                // Blur
-                                ParameterSlider(
-                                    title: "Blur",
-                                    value: Binding(
-                                        get: { Double(viewModel.blur) },
-                                        set: { newValue in
-                                            viewModel.blur = Float(newValue)
-                                            viewModel.updateParameter()
-                                        }
-                                    ),
-                                    range: 0.0...10.0,
-                                    step: 0.1
-                                )
-                                
-                                // Sharpen
-                                ParameterSlider(
-                                    title: "Sharpen",
-                                    value: Binding(
-                                        get: { Double(viewModel.sharpen) },
-                                        set: { newValue in
-                                            viewModel.sharpen = Float(newValue)
-                                            viewModel.updateParameter()
-                                        }
-                                    ),
-                                    range: 0.0...10.0,
-                                    step: 0.1
-                                )
-                                
-                                // Reset button
                                 Button("Reset All") {
                                     viewModel.resetAllParameters()
                                     viewModel.updateParameter()
@@ -234,76 +236,79 @@ struct ContentView: View {
                                 .buttonStyle(.borderless)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
-                                .background(Color.red.opacity(0.1))
+                                .background(.red.opacity(0.1))
                                 .foregroundColor(.red)
-                                .cornerRadius(6)
+                                .cornerRadius(8)
                             }
-                            .padding(.vertical, 8)
                         }
-                        
-                        Spacer()
-                        
-                        // Status
-                        if !viewModel.uploadStatus.isEmpty {
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .background(.regularMaterial)
+                    
+                    // Status bar
+                    if !viewModel.uploadStatus.isEmpty {
+                        VStack(spacing: 0) {
+                            Divider()
                             Text(viewModel.uploadStatus)
                                 .font(.caption)
-                                .padding(8)
-                                .background(Color.gray.opacity(0.1))
-                                .cornerRadius(6)
-                                .foregroundColor(.primary)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(.regularMaterial)
+                                .foregroundColor(.secondary)
                         }
                     }
-                    .padding()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
                 }
-                .frame(width: 250)
+                .frame(width: 280)
                 
                 // Main image area
                 ZStack {
-                    Color(NSColor.controlBackgroundColor).opacity(0.1)
+                    Rectangle()
+                        .fill(.background)
                     
                     if let selectedImage = viewModel.selectedImage {
-                        HStack(spacing: 20) {
+                        HStack(spacing: 32) {
                             // Original image
-                            VStack(spacing: 8) {
+                            VStack(spacing: 12) {
                                 ZStack {
-                                    Rectangle()
-                                        .fill(Color.black.opacity(0.05))
-                                        .cornerRadius(8)
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(.background)
+                                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
                                     
                                     Image(nsImage: selectedImage)
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
-                                        .cornerRadius(8)
-                                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                        .cornerRadius(12)
+                                        .clipped()
                                 }
-                                .frame(maxWidth: (geometry.size.width - 250) / 2 - 30, maxHeight: geometry.size.height - 100)
+                                .frame(maxWidth: (geometry.size.width - 280) / 2 - 40, maxHeight: geometry.size.height - 120)
                                 
                                 Text("Original")
-                                    .font(.caption)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
                                     .foregroundColor(.secondary)
                             }
                             
                             // Processed image
-                            VStack(spacing: 8) {
+                            VStack(spacing: 12) {
                                 ZStack {
-                                    Rectangle()
-                                        .fill(Color.black.opacity(0.05))
-                                        .cornerRadius(8)
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(.background)
+                                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
                                     
                                     if let processedImage = viewModel.processedImage {
                                         ZStack {
                                             Image(nsImage: processedImage)
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fit)
-                                                .cornerRadius(8)
-                                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                                .cornerRadius(12)
+                                                .clipped()
                                             
                                             if viewModel.isProcessingLive {
-                                                Rectangle()
-                                                    .fill(Color.black.opacity(0.3))
-                                                    .cornerRadius(8)
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .fill(.black.opacity(0.3))
                                                 
                                                 ProgressView()
                                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
@@ -311,57 +316,71 @@ struct ContentView: View {
                                             }
                                         }
                                     } else {
-                                        VStack(spacing: 12) {
+                                        VStack(spacing: 16) {
                                             if viewModel.isProcessingLive {
                                                 ProgressView()
-                                                    .progressViewStyle(CircularProgressViewStyle(tint: .blue))
-                                                    .scaleEffect(1.2)
+                                                    .progressViewStyle(CircularProgressViewStyle(tint: .accentColor))
+                                                    .scaleEffect(1.5)
                                                 Text("Processing...")
-                                                    .font(.caption)
-                                                    .foregroundColor(.blue)
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.accentColor)
                                             } else {
                                                 Image(systemName: "wand.and.stars")
-                                                    .font(.system(size: 32))
-                                                    .foregroundColor(.gray)
+                                                    .font(.system(size: 48))
+                                                    .foregroundStyle(.quaternary)
                                                 Text("Processed image\nwill appear here")
-                                                    .font(.caption)
-                                                    .foregroundColor(.gray)
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.secondary)
                                                     .multilineTextAlignment(.center)
                                             }
                                         }
                                     }
                                 }
-                                .frame(maxWidth: (geometry.size.width - 250) / 2 - 30, maxHeight: geometry.size.height - 100)
+                                .frame(maxWidth: (geometry.size.width - 280) / 2 - 40, maxHeight: geometry.size.height - 120)
                                 
                                 Text("Processed")
-                                    .font(.caption)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
                                     .foregroundColor(viewModel.processedImage != nil ? .green : .secondary)
                             }
                         }
-                        .padding()
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 24)
                     } else {
-                        VStack(spacing: 20) {
+                        VStack(spacing: 24) {
                             Image(systemName: "photo.on.rectangle")
-                                .font(.system(size: 64))
-                                .foregroundColor(.secondary)
+                                .font(.system(size: 72))
+                                .foregroundStyle(.quaternary)
                             
-                            Text("No image selected")
-                                .font(.title2)
-                                .foregroundColor(.secondary)
-                            
-                            Text("Import an image to get started")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            VStack(spacing: 8) {
+                                Text("No image selected")
+                                    .font(.title2)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                                
+                                Text("Import an image to get started")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
                         }
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .frame(minWidth: 1000, minHeight: 700)
+        .frame(minWidth: 1200, minHeight: 800)
         .fileImporter(
             isPresented: $viewModel.isImagePickerPresented,
-            allowedContentTypes: [.image],
+            allowedContentTypes: [
+                .image,
+                UTType(filenameExtension: "dng")!,
+                UTType(filenameExtension: "raw")!,
+                UTType(filenameExtension: "cr2")!,
+                UTType(filenameExtension: "nef")!,
+                UTType(filenameExtension: "arw")!,
+                UTType(filenameExtension: "orf")!,
+                UTType(filenameExtension: "rw2")!
+            ],
             allowsMultipleSelection: false
         ) { result in
             viewModel.handleImageSelection(result: result)

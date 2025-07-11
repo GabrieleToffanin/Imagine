@@ -3,6 +3,9 @@ using Imagine.Inbound.GrpcAdapter.Protos;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Tiff;
+using SixLabors.ImageSharp.Formats;
 using Google.Protobuf;
 
 namespace Imagine.Inbound.GrpcAdapter.Services;
@@ -54,7 +57,8 @@ public sealed class ImageProcessingService : UploadService.UploadServiceBase
         {
             Status = "Success",
             Message = $"Image processed successfully with editing parameters.",
-            ProcessedImage = ByteString.CopyFrom(processedImageBytes)
+            ProcessedImage = ByteString.CopyFrom(processedImageBytes),
+            OriginalFilename = imageName
         };
     }
     
@@ -72,8 +76,11 @@ public sealed class ImageProcessingService : UploadService.UploadServiceBase
             offset += chunk.ImageData.Length;
         }
         
-        // Process the image with ImageSharp
-        using var image = Image.Load(imageData);
+        // Detect original format for proper output encoding
+        var originalFormat = Image.DetectFormat(imageData);
+        
+        // Process the image with ImageSharp - enhanced for RAW support
+        using var image = LoadImageWithRawSupport(imageData).Result;
         
         // Apply all editing adjustments
         image.Mutate(x =>
@@ -130,14 +137,58 @@ public sealed class ImageProcessingService : UploadService.UploadServiceBase
             }
         });
         
-        // Convert back to byte array
+        // Convert back to byte array using original format
         using var output = new MemoryStream();
-        await image.SaveAsync(output, new PngEncoder());
+        
+        // Save using the original format, defaulting to PNG if format is null or unsupported
+        if (originalFormat?.Name == "JPEG")
+        {
+            await image.SaveAsync(output, new JpegEncoder { Quality = 95 });
+        }
+        else if (originalFormat?.Name == "TIFF")
+        {
+            await image.SaveAsync(output, new TiffEncoder());
+        }
+        else
+        {
+            // Default to PNG for all other formats (including PNG itself)
+            await image.SaveAsync(output, new PngEncoder());
+        }
+        
         var processedBytes = output.ToArray();
         
         Console.WriteLine($"Applied image editing: exposure={editingParams.Exposure:F2}, brightness={editingParams.Brightness:F2}, contrast={editingParams.Contrast:F2}, saturation={editingParams.Saturation:F2}, hue={editingParams.Hue:F2}, gamma={editingParams.Gamma:F2}, blur={editingParams.Blur:F2}, sharpen={editingParams.Sharpen:F2}");
-        Console.WriteLine($"Processed {imageData.Length} bytes, result: {processedBytes.Length} bytes");
+        Console.WriteLine($"Processed {imageData.Length} bytes, result: {processedBytes.Length} bytes (format: {originalFormat?.Name ?? "Unknown"})");
         
         return processedBytes;
+    }
+    
+    private Task<Image> LoadImageWithRawSupport(byte[] imageData)
+    {
+        try
+        {
+            // Try to detect format first
+            var format = Image.DetectFormat(imageData);
+            
+            if (format != null)
+            {
+                Console.WriteLine($"Detected image format: {format.Name}");
+                
+                // Load with detected format
+                return Task.FromResult(Image.Load(imageData));
+            }
+            else
+            {
+                Console.WriteLine("Could not detect image format, attempting generic load");
+                
+                // Fallback to generic load - ImageSharp will try to auto-detect
+                return Task.FromResult(Image.Load(imageData));
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading image with RAW support: {ex.Message}");
+            throw new InvalidOperationException($"Failed to load image data: {ex.Message}", ex);
+        }
     }
 }

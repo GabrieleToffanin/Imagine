@@ -8,6 +8,9 @@
 import SwiftUI
 import Foundation
 import UniformTypeIdentifiers
+import CoreImage
+import PhotosUI
+import Combine
 
 @available(macOS 15.0, *)
 @MainActor
@@ -15,6 +18,7 @@ class ImageProcessingViewModel: ObservableObject {
     @Published var selectedImage: NSImage?
     @Published var processedImage: NSImage?
     @Published var isImagePickerPresented = false
+    @Published var selectedPhotoItem: PhotosPickerItem?
     @Published var uploadStatus = ""
     @Published var isUploading = false
     @Published var exposure: Float = 0.0
@@ -30,6 +34,24 @@ class ImageProcessingViewModel: ObservableObject {
     
     private var processingDebounceTimer: Timer?
     private let imageUploadService = ImageUploadService()
+    private var originalImageURL: URL?
+    private var originalImageName: String?
+    private var processedImageName: String?
+    private var originalImageData: Data?
+    
+    init() {
+        // Observer for PhotosPicker selection
+        $selectedPhotoItem
+            .compactMap { $0 }
+            .sink { [weak self] photoItem in
+                Task {
+                    await self?.loadImageFromPhotos(photoItem)
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    private var cancellables = Set<AnyCancellable>()
     
     func selectImage() {
         isImagePickerPresented = true
@@ -40,15 +62,108 @@ class ImageProcessingViewModel: ObservableObject {
         case .success(let urls):
             guard let url = urls.first else { return }
             
-            if let image = NSImage(contentsOf: url) {
-                selectedImage = image
+            let fileExtension = url.pathExtension.lowercased()
+            var image: NSImage?
+            
+            // Check if it's a RAW format
+            let rawExtensions = ["dng", "raw", "cr2", "nef", "arw", "orf", "rw2"]
+            if rawExtensions.contains(fileExtension) {
+                // Handle RAW files using Core Image
+                image = loadRawImage(from: url)
+            } else {
+                // Handle standard image formats
+                image = NSImage(contentsOf: url)
+            }
+            
+            if let loadedImage = image {
+                selectedImage = loadedImage
+                originalImageURL = url
+                originalImageName = url.lastPathComponent
+                originalImageData = nil // Clear Photos data when loading file
                 processedImage = nil
                 uploadStatus = ""
                 processingDebounceTimer?.invalidate()
                 resetAllParameters()
+            } else {
+                uploadStatus = "Error loading image: Unsupported format or corrupted file"
             }
         case .failure(let error):
             uploadStatus = "Error selecting image: \(error.localizedDescription)"
+        }
+    }
+    
+    private func loadRawImage(from url: URL) -> NSImage? {
+        // Try to create CIImage from the RAW file
+        guard let ciImage = CIImage(contentsOf: url) else {
+            print("Failed to create CIImage from RAW file: \(url.lastPathComponent)")
+            return nil
+        }
+        
+        // Apply RAW processing options for better quality
+        let options: [CIImageOption: Any] = [
+            .applyOrientationProperty: true,
+            .properties: [:]
+        ]
+        
+        // Re-create with options if needed
+        let processedImage = CIImage(contentsOf: url, options: options) ?? ciImage
+        
+        // Log RAW metadata for debugging
+        if let metadata = processedImage.properties as? [String: Any] {
+            print("RAW file loaded: \(url.lastPathComponent)")
+            print("Image dimensions: \(processedImage.extent.size)")
+            
+            // Extract common RAW metadata
+            if let exifData = metadata[kCGImagePropertyExifDictionary as String] as? [String: Any] {
+                if let cameraMake = exifData[kCGImagePropertyExifMakerNote as String] {
+                    print("Camera make: \(cameraMake)")
+                }
+            }
+            
+            if let rawData = metadata[kCGImagePropertyRawDictionary as String] as? [String: Any] {
+                print("RAW processing data available")
+            }
+        }
+        
+        // Use appropriate color space for RAW processing
+        let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
+        let context = CIContext(options: [.workingColorSpace: colorSpace])
+        
+        guard let cgImage = context.createCGImage(processedImage, from: processedImage.extent) else {
+            print("Failed to create CGImage from processed RAW data")
+            return nil
+        }
+        
+        return NSImage(cgImage: cgImage, size: NSSize(width: cgImage.width, height: cgImage.height))
+    }
+    
+    private func loadImageFromPhotos(_ photoItem: PhotosPickerItem) async {
+        do {
+            // Try to load as data first to preserve original format
+            if let data = try await photoItem.loadTransferable(type: Data.self) {
+                await MainActor.run {
+                    if let image = NSImage(data: data) {
+                        selectedImage = image
+                        originalImageName = photoItem.itemIdentifier ?? "photos_image"
+                        originalImageURL = nil // Photos don't have file URLs
+                        originalImageData = data // Store Photos data
+                        processedImage = nil
+                        uploadStatus = "Image loaded from Photos"
+                        processingDebounceTimer?.invalidate()
+                        resetAllParameters()
+                    } else {
+                        uploadStatus = "Error loading image from Photos"
+                    }
+                }
+            } else {
+                await MainActor.run {
+                    uploadStatus = "Error loading image from Photos"
+                }
+            }
+        } catch {
+            await MainActor.run {
+                uploadStatus = "Error loading image from Photos: \(error.localizedDescription)"
+            }
         }
     }
     
@@ -84,10 +199,29 @@ class ImageProcessingViewModel: ObservableObject {
     }
     
     private func processImageWithParameters(showProgress: Bool = false) {
-        guard let image = selectedImage,
-              let imageData = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: imageData),
-              let pngData = bitmap.representation(using: .png, properties: [:]) else {
+        guard let image = selectedImage else {
+            uploadStatus = "No image selected"
+            return
+        }
+        
+        // Get image data in original format if possible
+        var imageData: Data?
+        
+        // Try to get original data first
+        if let originalData = getOriginalImageData() {
+            imageData = originalData
+        } else {
+            // Fallback to TIFF representation and convert to PNG
+            guard let tiffData = image.tiffRepresentation,
+                  let bitmap = NSBitmapImageRep(data: tiffData),
+                  let pngData = bitmap.representation(using: .png, properties: [:]) else {
+                uploadStatus = "Error processing image"
+                return
+            }
+            imageData = pngData
+        }
+        
+        guard let finalImageData = imageData else {
             uploadStatus = "Error processing image"
             return
         }
@@ -105,8 +239,8 @@ class ImageProcessingViewModel: ObservableObject {
             do {
                 let service = try await ImageUploadService.create()
                 let response = try await service.uploadImage(
-                    imageData: pngData,
-                    imageName: "processed_image.png",
+                    imageData: finalImageData,
+                    imageName: originalImageName ?? "processed_image.png",
                     exposure: exposure,
                     brightness: brightness,
                     contrast: contrast,
@@ -128,6 +262,7 @@ class ImageProcessingViewModel: ObservableObject {
                     if !response.processedImage.isEmpty {
                         let processedImageData = Data(response.processedImage)
                         processedImage = NSImage(data: processedImageData)
+                        processedImageName = response.originalFilename.isEmpty ? originalImageName : response.originalFilename
                     }
                 }
             } catch {
@@ -150,8 +285,8 @@ class ImageProcessingViewModel: ObservableObject {
         uploadStatus = "Preparing download..."
         
         let savePanel = NSSavePanel()
-        savePanel.allowedContentTypes = [.png, .jpeg]
-        savePanel.nameFieldStringValue = "processed_image.png"
+        savePanel.allowedContentTypes = [.png, .jpeg, .tiff]
+        savePanel.nameFieldStringValue = processedImageName ?? "processed_image.png"
         savePanel.title = "Save Processed Image"
         
         savePanel.begin { result in
@@ -164,6 +299,23 @@ class ImageProcessingViewModel: ObservableObject {
                     self.uploadStatus = "Download cancelled"
                 }
             }
+        }
+    }
+    
+    private func getOriginalImageData() -> Data? {
+        // Return Photos data if available
+        if let photosData = originalImageData {
+            return photosData
+        }
+        
+        // Otherwise try to read from file URL
+        guard let url = originalImageURL else { return nil }
+        
+        do {
+            return try Data(contentsOf: url)
+        } catch {
+            print("Error reading original image data: \(error)")
+            return nil
         }
     }
     
@@ -182,6 +334,8 @@ class ImageProcessingViewModel: ObservableObject {
             data = bitmap.representation(using: .png, properties: [:])
         case "jpg", "jpeg":
             data = bitmap.representation(using: .jpeg, properties: [.compressionFactor: 0.9])
+        case "tiff", "tif":
+            data = bitmap.representation(using: .tiff, properties: [:])
         default:
             data = bitmap.representation(using: .png, properties: [:])
         }

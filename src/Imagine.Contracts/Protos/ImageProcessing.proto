@@ -24,5 +24,6 @@ message UploadImageResponse {
   string status = 1;
   string message = 2;
   bytes processed_image = 3;
+  string original_filename = 4;
 }
 
