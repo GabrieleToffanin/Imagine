@@ -7,6 +7,18 @@ using Google.Protobuf;
 
 namespace Imagine.Inbound.GrpcAdapter.Services;
 
+public class ImageEditingParameters
+{
+    public float Exposure { get; set; }
+    public float Brightness { get; set; }
+    public float Contrast { get; set; }
+    public float Saturation { get; set; }
+    public float Hue { get; set; }
+    public float Gamma { get; set; } = 1.0f;
+    public float Blur { get; set; }
+    public float Sharpen { get; set; }
+}
+
 public sealed class ImageProcessingService : UploadService.UploadServiceBase
 {
     public override async Task<UploadImageResponse> UploadImageStream(
@@ -14,31 +26,39 @@ public sealed class ImageProcessingService : UploadService.UploadServiceBase
         ServerCallContext context)
     {
         var imageChunks = new List<UploadImageChunk>();
-        float exposure = 0.0f;
+        var editingParams = new ImageEditingParameters();
         string imageName = string.Empty;
         
         await foreach (var chunk in requestStream.ReadAllAsync())
         {
             imageChunks.Add(chunk);
-            exposure = chunk.Exposure; // Use exposure from the last chunk (all should be the same)
+            // Use parameters from the last chunk (all should be the same)
+            editingParams.Exposure = chunk.Exposure;
+            editingParams.Brightness = chunk.Brightness;
+            editingParams.Contrast = chunk.Contrast;
+            editingParams.Saturation = chunk.Saturation;
+            editingParams.Hue = chunk.Hue;
+            editingParams.Gamma = chunk.Gamma;
+            editingParams.Blur = chunk.Blur;
+            editingParams.Sharpen = chunk.Sharpen;
             imageName = chunk.ImageName;
-            Console.WriteLine($"Received chunk {chunk.ChunkIndex} with exposure {chunk.Exposure}");
+            Console.WriteLine($"Received chunk {chunk.ChunkIndex} with editing parameters");
         }
         
-        // Process the image with exposure adjustment
-        var processedImageBytes = await ProcessImageWithExposure(imageChunks, exposure);
+        // Process the image with all editing adjustments
+        var processedImageBytes = await ProcessImageWithEditing(imageChunks, editingParams);
         
-        Console.WriteLine($"Processed image '{imageName}' with exposure {exposure}, total chunks: {imageChunks.Count}");
+        Console.WriteLine($"Processed image '{imageName}' with editing parameters, total chunks: {imageChunks.Count}");
         
         return new UploadImageResponse
         {
             Status = "Success",
-            Message = $"Image processed successfully with exposure {exposure:F2}.",
+            Message = $"Image processed successfully with editing parameters.",
             ProcessedImage = ByteString.CopyFrom(processedImageBytes)
         };
     }
     
-    private async Task<byte[]> ProcessImageWithExposure(List<UploadImageChunk> chunks, float exposure)
+    private async Task<byte[]> ProcessImageWithEditing(List<UploadImageChunk> chunks, ImageEditingParameters editingParams)
     {
         // Reconstruct the image from chunks
         var orderedChunks = chunks.OrderBy(c => c.ChunkIndex).ToList();
@@ -55,19 +75,68 @@ public sealed class ImageProcessingService : UploadService.UploadServiceBase
         // Process the image with ImageSharp
         using var image = Image.Load(imageData);
         
-        // Apply exposure adjustment
-        // Exposure is typically applied as a brightness multiplier
-        // Exposure value of 1.0 means 2x brighter, -1.0 means 0.5x darker
-        var exposureMultiplier = MathF.Pow(2.0f, exposure);
-        
-        image.Mutate(x => x.Brightness(exposureMultiplier));
+        // Apply all editing adjustments
+        image.Mutate(x =>
+        {
+            // Apply exposure adjustment
+            if (editingParams.Exposure != 0.0f)
+            {
+                var exposureMultiplier = MathF.Pow(2.0f, editingParams.Exposure);
+                x.Brightness(exposureMultiplier);
+            }
+            
+            // Apply brightness adjustment (-1.0 to 1.0)
+            if (editingParams.Brightness != 0.0f)
+            {
+                x.Brightness(1.0f + editingParams.Brightness);
+            }
+            
+            // Apply contrast adjustment (-1.0 to 1.0)
+            if (editingParams.Contrast != 0.0f)
+            {
+                x.Contrast(1.0f + editingParams.Contrast);
+            }
+            
+            // Apply saturation adjustment (-1.0 to 1.0)
+            if (editingParams.Saturation != 0.0f)
+            {
+                x.Saturate(1.0f + editingParams.Saturation);
+            }
+            
+            // Apply hue adjustment (-180 to 180 degrees)
+            if (editingParams.Hue != 0.0f)
+            {
+                x.Hue(editingParams.Hue);
+            }
+            
+            // Apply gamma correction (0.1 to 3.0)
+            if (editingParams.Gamma != 1.0f && editingParams.Gamma > 0.0f)
+            {
+                // ImageSharp doesn't have a direct Gamma method, use brightness with gamma curve
+                var gammaAdjustment = MathF.Pow(editingParams.Gamma, 1.0f / 2.2f);
+                x.Brightness(gammaAdjustment);
+            }
+            
+            // Apply blur (0 to 10 radius)
+            if (editingParams.Blur > 0.0f)
+            {
+                x.GaussianBlur(editingParams.Blur);
+            }
+            
+            // Apply sharpen (0 to 10 amount)
+            if (editingParams.Sharpen > 0.0f)
+            {
+                x.GaussianSharpen(editingParams.Sharpen);
+            }
+        });
         
         // Convert back to byte array
         using var output = new MemoryStream();
         await image.SaveAsync(output, new PngEncoder());
         var processedBytes = output.ToArray();
         
-        Console.WriteLine($"Applied exposure adjustment: {exposure:F2} (multiplier: {exposureMultiplier:F2}) to {imageData.Length} bytes, result: {processedBytes.Length} bytes");
+        Console.WriteLine($"Applied image editing: exposure={editingParams.Exposure:F2}, brightness={editingParams.Brightness:F2}, contrast={editingParams.Contrast:F2}, saturation={editingParams.Saturation:F2}, hue={editingParams.Hue:F2}, gamma={editingParams.Gamma:F2}, blur={editingParams.Blur:F2}, sharpen={editingParams.Sharpen:F2}");
+        Console.WriteLine($"Processed {imageData.Length} bytes, result: {processedBytes.Length} bytes");
         
         return processedBytes;
     }

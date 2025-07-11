@@ -11,6 +11,13 @@ message UploadImageChunk {
   bytes image_data = 2;
   int32 chunk_index = 3;
   float exposure = 4;
+  float brightness = 5;
+  float contrast = 6;
+  float saturation = 7;
+  float hue = 8;
+  float gamma = 9;
+  float blur = 10;
+  float sharpen = 11;
 }
 
 message UploadImageResponse {
