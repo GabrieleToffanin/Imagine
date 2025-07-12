@@ -7,20 +7,10 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Tiff;
 using SixLabors.ImageSharp.Formats;
 using Google.Protobuf;
+using Imagine.Contracts.ImageEditing;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Imagine.Inbound.GrpcAdapter.Services;
-
-public class ImageEditingParameters
-{
-    public float Exposure { get; set; }
-    public float Brightness { get; set; }
-    public float Contrast { get; set; }
-    public float Saturation { get; set; }
-    public float Hue { get; set; }
-    public float Gamma { get; set; } = 1.0f;
-    public float Blur { get; set; }
-    public float Sharpen { get; set; }
-}
 
 public sealed class ImageProcessingService : UploadService.UploadServiceBase
 {
@@ -50,8 +40,6 @@ public sealed class ImageProcessingService : UploadService.UploadServiceBase
         
         // Process the image with all editing adjustments
         var processedImageBytes = await ProcessImageWithEditing(imageChunks, editingParams);
-        
-        Console.WriteLine($"Processed image '{imageName}' with editing parameters, total chunks: {imageChunks.Count}");
         
         return new UploadImageResponse
         {
@@ -116,14 +104,6 @@ public sealed class ImageProcessingService : UploadService.UploadServiceBase
                 x.Hue(editingParams.Hue);
             }
             
-            // Apply gamma correction (0.1 to 3.0)
-            if (editingParams.Gamma != 1.0f && editingParams.Gamma > 0.0f)
-            {
-                // ImageSharp doesn't have a direct Gamma method, use brightness with gamma curve
-                var gammaAdjustment = MathF.Pow(editingParams.Gamma, 1.0f / 2.2f);
-                x.Brightness(gammaAdjustment);
-            }
-            
             // Apply blur (0 to 10 radius)
             if (editingParams.Blur > 0.0f)
             {
@@ -136,6 +116,8 @@ public sealed class ImageProcessingService : UploadService.UploadServiceBase
                 x.GaussianSharpen(editingParams.Sharpen);
             }
         });
+        
+        ApplyGammaCorrection(image, editingParams.Gamma);
         
         // Convert back to byte array using original format
         using var output = new MemoryStream();
@@ -155,15 +137,28 @@ public sealed class ImageProcessingService : UploadService.UploadServiceBase
             await image.SaveAsync(output, new PngEncoder());
         }
         
-        var processedBytes = output.ToArray();
-        
-        Console.WriteLine($"Applied image editing: exposure={editingParams.Exposure:F2}, brightness={editingParams.Brightness:F2}, contrast={editingParams.Contrast:F2}, saturation={editingParams.Saturation:F2}, hue={editingParams.Hue:F2}, gamma={editingParams.Gamma:F2}, blur={editingParams.Blur:F2}, sharpen={editingParams.Sharpen:F2}");
-        Console.WriteLine($"Processed {imageData.Length} bytes, result: {processedBytes.Length} bytes (format: {originalFormat?.Name ?? "Unknown"})");
-        
-        return processedBytes;
+        return output.ToArray();
     }
-    
-    private Task<Image> LoadImageWithRawSupport(byte[] imageData)
+
+    private void ApplyGammaCorrection(Image<Rgba32> image, float editingParamsGamma)
+    {
+        for (int i = 0; i < image.Height - 1; i++)
+        {
+            for (int j = 0; j < image.Width; j++)
+            {
+                var pixel = image[j, i];
+                
+                // Apply gamma correction
+                pixel.R = (byte)(MathF.Pow(pixel.R / 255.0f, editingParamsGamma) * 255);
+                pixel.G = (byte)(MathF.Pow(pixel.G / 255.0f, editingParamsGamma) * 255);
+                pixel.B = (byte)(MathF.Pow(pixel.B / 255.0f, editingParamsGamma) * 255);
+                
+                image[j, i] = pixel;
+            }
+        }
+    }
+
+    private Task<Image<Rgba32>> LoadImageWithRawSupport(byte[] imageData)
     {
         try
         {
@@ -175,14 +170,14 @@ public sealed class ImageProcessingService : UploadService.UploadServiceBase
                 Console.WriteLine($"Detected image format: {format.Name}");
                 
                 // Load with detected format
-                return Task.FromResult(Image.Load(imageData));
+                return Task.FromResult(Image.Load<Rgba32>(imageData));
             }
             else
             {
                 Console.WriteLine("Could not detect image format, attempting generic load");
                 
                 // Fallback to generic load - ImageSharp will try to auto-detect
-                return Task.FromResult(Image.Load(imageData));
+                return Task.FromResult(Image.Load<Rgba32>(imageData));
             }
         }
         catch (Exception ex)

@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Imagine.Inbound.GrpcAdapter
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Imagine.Contracts", "src\Imagine.Contracts\Imagine.Contracts.csproj", "{9D8CA71E-AB13-4477-8FE6-DA13AEDD88D4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Imagine.Application", "src\Imagine.Application\Imagine.Application.csproj", "{F0721B5C-64A4-4857-9233-6908D95650AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,10 +33,15 @@ Global
 		{9D8CA71E-AB13-4477-8FE6-DA13AEDD88D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D8CA71E-AB13-4477-8FE6-DA13AEDD88D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D8CA71E-AB13-4477-8FE6-DA13AEDD88D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0721B5C-64A4-4857-9233-6908D95650AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0721B5C-64A4-4857-9233-6908D95650AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0721B5C-64A4-4857-9233-6908D95650AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0721B5C-64A4-4857-9233-6908D95650AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1120AB61-738C-4683-A9AC-4A43BD9785E7} = {D50D069F-3036-4749-B559-B15DA9EC80F3}
 		{6F71EE94-57F2-461F-B5F7-8B748F1E2AA9} = {D50D069F-3036-4749-B559-B15DA9EC80F3}
 		{9D8CA71E-AB13-4477-8FE6-DA13AEDD88D4} = {D50D069F-3036-4749-B559-B15DA9EC80F3}
+		{F0721B5C-64A4-4857-9233-6908D95650AF} = {D50D069F-3036-4749-B559-B15DA9EC80F3}
 	EndGlobalSection
 EndGlobal
